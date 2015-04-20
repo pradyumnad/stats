@@ -2,11 +2,11 @@
 
 # Info:
 -
--- Here we are implementing MAP REDUCE on STATISTIC functions like Count,Max,Min,Mean,Standard deviation,25th,50th and 70th percentile.
+Here we are implementing MAP REDUCE on STATISTIC functions like Count,Max,Min,Mean,Standard deviation,25th,50th and 70th percentile.
 
 # Requirements:
 -
--- IBM BigInsights
+IBM BigInsights
 
 # Implementation:
 -
@@ -44,7 +44,6 @@ The MapReduce implements a Multi-machine platform for programming using the the 
 
 # MapFunction:
 -
-
 map (k1,v1) --> list(k2,v2)
 
 Map function gets input a key,value pair and generates a list of keys and its associated values.
@@ -64,7 +63,6 @@ Code:
 
 # ReduceFunction:
 -
-
 reduce (k2,list(v2)) --> list(v2)
 
 Reduce function gets input form map function ,and gives output as list of values.
