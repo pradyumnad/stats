@@ -1,5 +1,8 @@
 # Stats:
 
+# Info:
+-- Here we are implementing MAP REDUCE on STATISTIC functions like Count,Max,Min,Mean,Standard deviation,25th,50th adn 70th percentile.
+
 # Requirements:
 -- IBM BigInsights
 
