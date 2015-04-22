@@ -1,7 +1,6 @@
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.conf.*;
 import org.apache.hadoop.io.*;
@@ -12,122 +11,154 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 public class Statistics {
+	/**
+	 * Z variables to calculate the quantiles Picked from the Z score table
+	 * For more information look into Readme.
+	 * Note :
+	 * http://en.wikipedia.org/wiki/Standard_score#Calculation_from_raw_score
+	 */
+	private static final double Z25 = -0.675;
+	private static final double Z50 = 0;
+	private static final double Z75 = 0.675;
 
-    public static String kCount = "count";
-    public static String kMean = "mean";
-    public static String kSD = "standard deviation";
-    public static String kMin = "min";
-    public static String kMax = "max";
-    public static String kP = "25";
-    public static String kPP = "50";
-    public static String kPPP = "75";
+	public static class Map extends
+			Mapper<LongWritable, Text, Text, MapWritable> {
+		Text countKey = new Text("count");
+		Text maxKey = new Text("max");
+		Text minKey = new Text("min");
+		Text sumKey = new Text("sum");
+		Text textKey = new Text("1");
 
-    public static class Map extends
-            Mapper<LongWritable, Text, Text, IntWritable> {
-        private Text word = new Text();
+		MapWritable mw = new MapWritable();
 
-        public void map(LongWritable key, Text value, Context context)
-                throws IOException, InterruptedException {
-            String line = value.toString();
-            int number = Integer.parseInt(line);
-            IntWritable number_i = new IntWritable(number);
+		@Override
+		protected void map(LongWritable key, Text value, Context context)
+				throws IOException, InterruptedException {
+			String line = value.toString();
+			int number = Integer.parseInt(line);
+			IntWritable num = new IntWritable(number);
 
-            word.set(kCount);
-            context.write(word, number_i);
-        }
-    }
+			mw.put(countKey, new IntWritable(1));
+			mw.put(maxKey, new IntWritable(number));
+			mw.put(minKey, new IntWritable(number));
+			mw.put(sumKey, new IntWritable(number));
 
-    public static class Reduce extends
-            Reducer<Text, IntWritable, Text, FloatWritable> {
+			context.write(textKey, mw);
+		}
+	}
 
-        public void reduce(Text key, Iterable<IntWritable> values,
-                Context context) throws IOException, InterruptedException {
-            String command = key.toString();
-            List<IntWritable> cache = new ArrayList<IntWritable>();
-            // Iterators.size((Iterator<IntWritable>) values);
-            if (command.equalsIgnoreCase(kCount)) {
-                float count = 0;
-                float sum = 0;
+	public static class Reduce extends
+			Reducer<Text, MapWritable, Text, FloatWritable> {
 
-                int max = 0;
-                int min = max;
-                
-                for (IntWritable val : values) {
-                    count += 1;
-                    int n = val.get();
-                    if(count == 1) {
-                        min = n;
-                        max = n;
-                    }
-                    max = max > n ? max : n;
-                    min = min < n ? min : n;
-                    sum += n;
-                    cache.add(new IntWritable(n));
-                }
-                
-                context.write(key, new FloatWritable(count));
-                context.write(new Text("max"), new FloatWritable(max));
-                context.write(new Text("min"), new FloatWritable(min));
-                Text key2 = new Text(kMean);
-                float mean = (float) sum / count;
-                context.write(key2, new FloatWritable(mean));
+		Text countKey = new Text("count");
+		Text maxKey = new Text("max");
+		Text minKey = new Text("min");
+		Text sumKey = new Text("sum");
+		Text textKey = new Text("1");
+		MapWritable mw = new MapWritable();
 
-                float sdSum = 0;
-                for (IntWritable val : cache) {
-                    float diff = val.get() - mean;
-                    diff = diff * diff;
-                    sdSum += diff;
-                }
+		@Override
+		protected void reduce(Text key, Iterable<MapWritable> values,
+				Context context) throws IOException, InterruptedException {
 
-                float sd = (float) Math.sqrt((float) (sdSum / count));
-                Text keySD = new Text(kSD);
-                context.write(keySD, new FloatWritable(sd));
+			MapWritable firstMapWritable = values.iterator().next();
+			int max = ((IntWritable) firstMapWritable.get(maxKey)).get();
+			int min = ((IntWritable) firstMapWritable.get(minKey)).get();
+			int count = ((IntWritable) firstMapWritable.get(countKey)).get();
+			int number = ((IntWritable) firstMapWritable.get(sumKey)).get();
 
-                
-                float tfp = percentile(cache, count, 25);
-                float fp = percentile(cache, count, 50);
-                float sfp = percentile(cache, count, 75);
+			int sum = number;
 
-                context.write(new Text(kP), new FloatWritable(tfp));
-                context.write(new Text(kPP), new FloatWritable(fp));
-                context.write(new Text(kPPP), new FloatWritable(sfp));
-            }
-        }
-        
-        private float percentile(List<IntWritable> values, float count,
-                int type) {
-            float range = (float)(type / 100.0) * (count + 1);
-            
-            int IR = (int) Math.floor(range);
-            float FR = range - IR;
+			int mean = 0;
+			int M2 = 0;
+			int delta = number - mean;
+			mean = mean + delta / count;
+			M2 += delta * (number - mean);
 
-            int val1 = values.get(IR-1).get();
-            int val2 = values.get(IR).get();
+			for (MapWritable m : values) {
+				IntWritable sumWritable = (IntWritable) m.get(sumKey);
+				IntWritable countIntWritable = (IntWritable) m.get(countKey);
+				// Calculating Standard deviation using algorithm proposed by Donald E. Knuth
+				delta = number - mean;
+				mean = mean + delta / count;
+				M2 += delta * (number - mean);
 
-            float percentile = FR * (val2 - val1) + val1;
-            return percentile;
-        }
-    }
+				count += countIntWritable.get();
 
-    public static void main(String[] args) throws Exception {
-        Configuration conf = new Configuration();
+				IntWritable maxWritable = (IntWritable) m.get(maxKey);
+				max = Math.max(maxWritable.get(), max);
 
-        Job job = new Job(conf, "stats");
+				IntWritable minWritable = (IntWritable) m.get(minKey);
+				min = Math.min(minWritable.get(), min);
 
-        job.setJarByClass(Statistics.class);
+				number = sumWritable.get();
+				sum += number;
+			}
 
-        job.setOutputKeyClass(Text.class);
-        job.setOutputValueClass(IntWritable.class);
+			context.write(countKey, new FloatWritable(count));
+			context.write(maxKey, new FloatWritable(max));
+			context.write(minKey, new FloatWritable(min));
+			float finalMean = (float) sum / count;
+			context.write(new Text("mean"), new FloatWritable(finalMean));
+			double sd = Math.sqrt((float) M2 / (count - 1));
+			context.write(new Text("sd"), new FloatWritable((float) sd));
 
-        job.setMapperClass(Map.class);
-        job.setReducerClass(Reduce.class);
+			/**
+			 * Using Z score, (Standard score)
+			 */
+			double twentyfifth = finalMean + sd * Z25;
+			double fiftyth = finalMean + sd * Z50;
+			double seventyfifth = finalMean + sd * Z75;
 
-        job.setInputFormatClass(TextInputFormat.class);
-        job.setOutputFormatClass(TextOutputFormat.class);
+			context.write(new Text("25th"), new FloatWritable(
+					(float) twentyfifth));
+			context.write(new Text("50th"), new FloatWritable((float) fiftyth));
+			context.write(new Text("75th"), new FloatWritable(
+					(float) seventyfifth));
+		}
+	}
 
-        FileInputFormat.addInputPath(job, new Path(args[1]));
-        FileOutputFormat.setOutputPath(job, new Path(args[2]));
+	/**
+	 * @param args
+	 * @throws IOException
+	 * @throws IllegalArgumentException
+	 * @throws InterruptedException
+	 * @throws ClassNotFoundException
+	 */
+	public static void main(String[] args) throws IllegalArgumentException,
+			IOException, ClassNotFoundException, InterruptedException {
 
-        job.waitForCompletion(true);
-    }
+		System.out.println(args[0]);
+		System.out.println(args[1]);
+
+		Path pt = new Path(args[2]);
+		FileSystem fs = FileSystem.get(new Configuration());
+
+		if (fs.exists(pt)) {
+			fs.delete(pt, true);
+			System.out.print("Deleted output directory for recreation..");
+		}
+
+		Configuration conf = new Configuration();
+
+		Job job = new Job(conf, "statistics");
+
+		job.setJarByClass(Statistics.class);
+
+		job.setOutputKeyClass(Text.class);
+		job.setOutputValueClass(MapWritable.class);
+
+		job.setMapperClass(Map.class);
+		job.setReducerClass(Reduce.class);
+
+		job.setInputFormatClass(TextInputFormat.class);
+		job.setOutputFormatClass(TextOutputFormat.class);
+
+		job.setNumReduceTasks(1);
+
+		FileInputFormat.addInputPath(job, new Path(args[1]));
+		FileOutputFormat.setOutputPath(job, new Path(args[2]));
+
+		job.waitForCompletion(true);
+	}
 }
