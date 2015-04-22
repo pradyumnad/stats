@@ -1,11 +1,9 @@
 # Stats:
 
 #YouTube Video Link:
--
 https://youtu.be/DJxEoOl3Dkg
 
 # Info:
--
 Here we are implementing MAP REDUCE on STATISTIC functions like Count,Max,Min,Mean,Standard deviation,25th,50th and 70th percentile.
 
 # Requirements:
