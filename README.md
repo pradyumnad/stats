@@ -7,11 +7,9 @@ https://youtu.be/DJxEoOl3Dkg
 Here we are implementing MAP REDUCE on STATISTIC functions like Count,Max,Min,Mean,Standard deviation,25th,50th and 70th percentile.
 
 # Requirements:
--
 IBM BigInsights
 
 # Implementation:
--
 Step 1: Open the eclipse in BigInsights.
 
 Step 2: Get the FunStats code in eclipse.
@@ -36,16 +34,13 @@ Step 5: Wait for Map Reduce to implement.
 Step 6: Check the output file in Hadoop File Broser.
 
 # Resources:
--
 -- http://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/FileSystemShell.html
 
 
 # MapReduce:
--
 The MapReduce implements a Multi-machine platform for programming using the the Google MapReduce idiom. Users specify a map function that processes a key/value pair to generate a set of intermediate key/value pairs, and a reduce function that merges all intermediate values associated with the same intermediate key.
 
 # MapFunction:
--
 map (k1,v1) --> list(k2,v2)
 
 Map function gets input a key,value pair and generates a list of keys and its associated values.
@@ -64,7 +59,6 @@ Code:
          }         
 
 # ReduceFunction:
--
 reduce (k2,list(v2)) --> list(v2)
 
 Reduce function gets input form map function ,and gives output as list of values.
