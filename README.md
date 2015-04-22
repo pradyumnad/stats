@@ -1,12 +1,12 @@
-# Stats:
+# Fun Stats:
 
-#YouTube Video Link:
+###YouTube Video Link:
 https://youtu.be/DJxEoOl3Dkg
 
-# Info:
+##Info:
 Here we are implementing MAP REDUCE on STATISTIC functions like Count,Max,Min,Mean,Standard deviation,25th,50th and 70th percentile.
 
-# Requirements:
+##Requirements:
 IBM BigInsights
 
 # Implementation:
