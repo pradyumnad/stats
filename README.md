@@ -1,15 +1,15 @@
 #Fun Stats:
 
-#YouTube Video Link:
+##YouTube Video Link:
 https://www.youtube.com/watch?v=GIn3z7Dj6IE
 
-# Info:
+##Info:
 Here we are implementing MAP REDUCE on STATISTIC functions like Count,Max,Min,Mean,Standard deviation,25th,50th and 70th percentile.
 
-# Requirements:
+###Requirements:
 IBM BigInsights
 
-# Implementation:
+##Implementation:
 Step 1: Open the eclipse in BigInsights.
 
 Step 2: Get the FunStats code in eclipse.
@@ -36,7 +36,7 @@ Step 8: Wait for Map Reduce to implement.
 Step 9: Check the output file in Hadoop File Broser.
 
 
-# DataGenerator:
+##DataGenerator:
 
         Path pt = new Path(
 		"hdfs://bivm.ibm.com:9000/user/biadmin/Statistics_Input/test.txt");
@@ -60,12 +60,12 @@ Step 9: Check the output file in Hadoop File Broser.
 			flag++;
 		}
 
-# MapReduce:
+##MapReduce:
 -
 The MapReduce implements a Multi-machine platform for programming using the the Google MapReduce idiom. Users specify a map function that processes a key/value pair to generate a set of intermediate key/value pairs, and a reduce function that merges all intermediate values associated with the same intermediate key.
 
 
-# MapFunction:
+##MapFunction:
 -
 map (k1,v1) --> list(k2,v2)
 
@@ -87,7 +87,7 @@ Code:
 			context.write(textKey, mw);
 		    }        
 
-# ReduceFunction:
+##ReduceFunction:
 -
 reduce (k2,list(v2)) --> list(v2)
 
@@ -154,12 +154,9 @@ Reduce function gets input form map function ,and gives output as list of values
 
 
             
-# Resources:
-
+##Resources:
+http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Online_algorithm by Donald E. Knuth
 http://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/FileSystemShell.html
-
 http://en.wikipedia.org/wiki/Standard_score   - Finding percentile.
-
-Formula : Value = Mean + (Z value for percentile)*Standard_Deviation.
-
+	Formula : Value = Mean + (Z value for percentile)*Standard_Deviation.
 http://www.pindling.org/Math/Learning/Statistics/z_scores_table.htm    - Z table for Percentile.
