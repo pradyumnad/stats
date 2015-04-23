@@ -155,8 +155,8 @@ Reduce function gets input form map function ,and gives output as list of values
 
             
 ##Resources:
-http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Online_algorithm by Donald E. Knuth
-http://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/FileSystemShell.html
-http://en.wikipedia.org/wiki/Standard_score   - Finding percentile.
-	Formula : Value = Mean + (Z value for percentile)*Standard_Deviation.
-http://www.pindling.org/Math/Learning/Statistics/z_scores_table.htm    - Z table for Percentile.
+	*http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Online_algorithm by Donald E. Knuth
+	*http://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/FileSystemShell.html
+	*http://en.wikipedia.org/wiki/Standard_score   - Finding percentile.
+		Formula : Value = Mean + (Z value for percentile)*Standard_Deviation.
+	*http://www.pindling.org/Math/Learning/Statistics/z_scores_table.htm    - Z table for Percentile.
